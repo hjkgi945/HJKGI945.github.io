@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<!--
+  这份文件只负责「结构」：页面上有哪些内容，按什么顺序排列。
+  样式在 css/style.css，交互在 js/app.js，游戏数据在 js/data.js。
+-->
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GameHub · 发现你的下一款游戏</title>
+  <meta name="description" content="一个收录各类网络游戏的小站，支持分类筛选、搜索和收藏。" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- ========== 顶部导航 ========== -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="logo" href="./index.html">
+        <span class="logo-mark">🎮</span>
+        <span>Game<em>Hub</em></span>
+      </a>
+      <div class="header-actions">
+        <nav class="nav">
+          <a href="#games">游戏库</a>
+          <a href="#about">关于</a>
+        </nav>
+        <div class="auth-area" id="authArea"><!-- 登录状态由 JS 渲染 --></div>
+        <button class="btn-add" id="addGameBtn" type="button">
+          <span aria-hidden="true">＋</span> 添加游戏
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========== 首屏：标题 + 搜索 ========== -->
+  <section class="hero">
+    <div class="container">
+      <p class="eyebrow">精选 · 全品类 · 持续更新</p>
+      <h1>找到下一款<br /><span class="gradient-text">让你上头的游戏</span></h1>
+      <p class="hero-sub">竞技、开放世界、独立小品……都在这里。按分类浏览，或者直接搜名字。</p>
+
+      <div class="search">
+        <span class="search-icon" aria-hidden="true">🔍</span>
+        <input
+          id="searchInput"
+          type="search"
+          placeholder="搜索游戏名、类型或标签，例如：开放世界"
+          autocomplete="off"
+          aria-label="搜索游戏"
+        />
+      </div>
+
+      <ul class="stats" id="stats"><!-- 由 JS 填充 --></ul>
+    </div>
+  </section>
+
+  <!-- ========== 主内容区 ========== -->
+  <main class="container" id="games">
+    <div class="toolbar">
+      <div class="filters" id="filters" role="group" aria-label="按类型筛选"><!-- 由 JS 生成 --></div>
+    </div>
+
+    <div class="list-bar">
+      <p class="result-count" id="resultCount"></p>
+      <label class="sort">
+        排序
+        <select id="sortSelect">
+          <option value="rating">评分最高</option>
+          <option value="year">最新发行</option>
+          <option value="name">名称 A–Z</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="grid" id="grid"><!-- 游戏卡片由 JS 生成 --></div>
+
+    <div class="empty" id="empty" hidden>
+      <p class="empty-emoji">🕹️</p>
+      <p class="empty-title">没有找到符合条件的游戏</p>
+      <p class="empty-sub">换个关键词，或者点「全部」看看。</p>
+    </div>
+  </main>
+
+  <!-- ========== 页脚 ========== -->
+  <footer class="site-footer" id="about">
+    <div class="container footer-inner">
+      <p>GameHub · 一个用来练手的网页作品</p>
+      <div class="footer-right">
+        <button class="link-subtle" id="restoreBtn" type="button" hidden></button>
+        <p class="footer-muted">数据在 <code>js/data.js</code>，想加游戏改那里就行。</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========== 详情弹窗（默认隐藏） ========== -->
+  <div class="modal" id="modal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle" tabindex="-1">
+      <button class="modal-close" type="button" aria-label="关闭" data-close>✕</button>
+      <div class="modal-cover" id="modalCover">
+        <span>🎮</span>
+      </div>
+      <div class="modal-body">
+        <h2 id="modalTitle"></h2>
+        <p class="modal-sub" id="modalSub"></p>
+        <div class="modal-rating" id="modalRating"></div>
+        <p class="modal-desc" id="modalDesc"></p>
+        <div class="modal-tags" id="modalTags"></div>
+        <dl class="modal-meta" id="modalMeta"></dl>
+        <button class="btn-fav" id="modalFav" type="button"></button>
+        <button class="btn-danger" id="modalDelete" type="button" hidden>删除这款游戏</button>
+
+        <!-- 评论区 -->
+        <section class="comments" aria-label="评论">
+          <div class="comments-head">
+            <h3>评论 <span class="comments-count" id="commentCount">0</span></h3>
+          </div>
+
+          <ul class="comment-list" id="commentList"><!-- 由 JS 渲染 --></ul>
+          <p class="comment-empty" id="commentEmpty">还没有评论，来说两句吧。</p>
+
+          <form class="comment-form" id="commentForm" novalidate>
+            <p class="comment-as" id="commentAs"></p>
+            <textarea class="comment-textarea" id="commentText" rows="2" maxlength="200"
+                      placeholder="说说你对这款游戏的看法…" aria-label="评论内容"></textarea>
+            <p class="comment-error" id="commentError" hidden></p>
+            <div class="comment-actions">
+              <span class="comment-counter" id="commentCounter">0/200</span>
+              <button class="btn-primary btn-sm" type="submit">发表评论</button>
+            </div>
+          </form>
+
+          <!-- 没登录时顶替表单的提示 -->
+          <div class="comment-login" id="commentLogin" hidden>
+            <p>登录后才能发表评论</p>
+            <button class="btn-primary btn-sm" id="commentLoginBtn" type="button">登录 / 注册</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 添加游戏表单（默认隐藏） ========== -->
+  <div class="modal" id="formModal" hidden>
+    <div class="modal-backdrop" data-close-form></div>
+    <div class="modal-card form-card" role="dialog" aria-modal="true" aria-labelledby="formTitle" tabindex="-1">
+      <button class="modal-close" type="button" aria-label="关闭" data-close-form>✕</button>
+
+      <form id="gameForm" class="form" novalidate>
+        <h2 id="formTitle">添加一款游戏</h2>
+        <p class="form-hint">保存后会存进这台电脑的浏览器里（localStorage），刷新、关掉再开都还在。</p>
+
+        <div class="form-grid">
+          <label class="field full">
+            <span>游戏名 <b>*</b></span>
+            <input name="title" type="text" maxlength="40" placeholder="例如：星露谷物语" autocomplete="off" required />
+          </label>
+
+          <label class="field">
+            <span>英文名</span>
+            <input name="titleEn" type="text" maxlength="60" placeholder="Stardew Valley" autocomplete="off" />
+          </label>
+
+          <label class="field">
+            <span>分类</span>
+            <input name="category" type="text" list="categoryOptions" maxlength="12"
+                   placeholder="选一个，或直接输入新分类" autocomplete="off" />
+            <datalist id="categoryOptions"><!-- 由 JS 填充 --></datalist>
+          </label>
+
+          <label class="field">
+            <span>评分（0–10）</span>
+            <input name="rating" type="number" min="0" max="10" step="0.1" value="8" />
+          </label>
+
+          <label class="field">
+            <span>发行年份</span>
+            <input name="year" type="number" min="1950" max="2100" step="1" />
+          </label>
+
+          <label class="field">
+            <span>平台</span>
+            <input name="platforms" type="text" maxlength="30" placeholder="PC / 手机 / 主机" autocomplete="off" />
+          </label>
+
+          <label class="field">
+            <span>标签（用逗号隔开）</span>
+            <input name="tags" type="text" maxlength="60" placeholder="联机, 休闲, 建造" autocomplete="off" />
+          </label>
+
+          <label class="field">
+            <span>封面图标（一个 emoji）</span>
+            <input name="emoji" type="text" maxlength="8" value="🎮" />
+          </label>
+
+          <div class="field">
+            <span>封面配色</span>
+            <div class="color-row">
+              <input name="color1" type="color" value="#1b2b4a" aria-label="封面起始颜色" />
+              <input name="color2" type="color" value="#7c5cff" aria-label="封面结束颜色" />
+            </div>
+          </div>
+
+          <div class="field full">
+            <span>封面图片（可选，优先于 emoji）</span>
+            <div class="upload-row">
+              <div class="upload-thumb" id="coverPreview"><span>🎮</span></div>
+              <div class="upload-side">
+                <div class="upload-buttons">
+                  <button class="btn-ghost btn-sm" type="button" id="pickCoverBtn">选择图片</button>
+                  <button class="link-btn" type="button" id="clearCoverBtn" hidden>移除图片</button>
+                </div>
+                <p class="upload-hint" id="uploadHint">
+                  JPG / PNG / WebP，会自动压缩到 800px 以内再存进浏览器。
+                </p>
+              </div>
+            </div>
+            <input id="coverInput" type="file" accept="image/*" hidden />
+          </div>
+
+          <label class="field full">
+            <span>介绍</span>
+            <textarea name="desc" rows="3" maxlength="200" placeholder="一两句话说说这游戏好玩在哪"></textarea>
+          </label>
+        </div>
+
+        <p class="form-error" id="formError" hidden></p>
+
+        <div class="form-actions">
+          <button class="btn-ghost" type="button" data-close-form>取消</button>
+          <button class="btn-primary" type="submit">保存并收录</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========== 登录 / 注册（默认隐藏） ========== -->
+  <div class="modal" id="authModal" hidden>
+    <div class="modal-backdrop" data-close-auth></div>
+    <div class="modal-card auth-card" role="dialog" aria-modal="true" aria-labelledby="authTitle" tabindex="-1">
+      <button class="modal-close" type="button" aria-label="关闭" data-close-auth>✕</button>
+      <div class="modal-body">
+        <h2 id="authTitle">登录</h2>
+        <p class="form-hint" id="authHint">登录后才能添加游戏和发表评论。</p>
+
+        <div class="auth-tabs" role="tablist">
+          <button class="auth-tab active" type="button" role="tab" data-auth-tab="login" aria-selected="true">登录</button>
+          <button class="auth-tab" type="button" role="tab" data-auth-tab="register" aria-selected="false">注册</button>
+        </div>
+
+        <form id="authForm" novalidate>
+          <div class="auth-fields">
+            <label class="field">
+              <span>用户名</span>
+              <input name="username" type="text" maxlength="16" autocomplete="username"
+                     placeholder="2–16 个字，支持中文" />
+            </label>
+            <label class="field">
+              <span>密码</span>
+              <input name="password" type="password" maxlength="64" autocomplete="current-password"
+                     placeholder="至少 6 位" />
+            </label>
+          </div>
+
+          <p class="form-error" id="authError" hidden></p>
+
+          <div class="form-actions">
+            <button class="btn-ghost" type="button" data-close-auth>取消</button>
+            <button class="btn-primary" id="authSubmit" type="submit">登录</button>
+          </div>
+        </form>
+
+        <p class="auth-note">
+          账号只保存在这台设备的浏览器里，密码加盐哈希后存储，不会上传到任何地方。
+          也正因为没有服务器，它挡不住会用开发者工具的人——只适合做演示或个人使用。
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 操作成功的小提示 -->
+  <div class="toast" id="toast" role="status" hidden>
+    <span id="toastText"></span>
+    <button class="toast-action" id="toastAction" type="button" hidden>撤销</button>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
